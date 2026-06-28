@@ -1,0 +1,83 @@
+name: Build Mod
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'music/**'
+      - 'src/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate mod sources from music/ folder
+        run: python3 scripts/generate_mod.py
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Get version
+        id: version
+        run: echo "version=$(grep 'mod_version' gradle.properties | cut -d'=' -f2 | tr -d ' ')" >> $GITHUB_OUTPUT
+
+      - name: List songs
+        id: songs
+        run: |
+          SONGS=$(ls music/*.mp3 2>/dev/null | xargs -I {} basename {} .mp3 | tr '\n' ', ' | sed 's/,$//')
+          echo "songs=$SONGS" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SIM-RecordPlayer-${{ steps.version.outputs.version }}
+          path: build/libs/*.jar
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: "SIM-RecordPlayer v${{ steps.version.outputs.version }}"
+          body: |
+            ## SIM-RecordPlayer v${{ steps.version.outputs.version }}
+
+            ### included songs
+            ${{ steps.songs.outputs.songs }}
+
+            ### installation
+            1. Install Fabric Loader and Fabric API for Minecraft 1.21.1
+            2. Download the JAR file from this release
+            3. Place the JAR in your Minecraft `mods` folder
+            4. Place MP3 files in `~/Downloads/music/` (same filenames as in the `music/` folder)
+
+            ### how to add songs
+            1. Fork this repository
+            2. Add your MP3 files to the `music/` folder
+            3. Push to GitHub - the mod will be built automatically
+          files: build/libs/*.jar
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
