@@ -29,13 +29,18 @@ GEN_DIRS = [
 
 
 def derive_song_key(filename):
-    """Derive song key from MP3 filename: 'Moon Halo.mp3' -> 'moon_halo'"""
+    """Derive song key from MP3 filename: 'Moon Halo.mp3' -> 'moon_halo'
+    Only uses [a-z0-9_] to comply with Minecraft resource location rules.
+    For Chinese-only names, uses a short hash."""
+    import hashlib
     name = Path(filename).stem
     key = name.lower()
-    # Keep Chinese characters, letters, numbers, replace rest with underscore
-    key = re.sub(r'[^\w\u4e00-\u9fff]+', '_', key)
+    # Only keep ASCII letters and digits
+    key = re.sub(r'[^a-z0-9]+', '_', key)
     key = key.strip('_')
-    # Ensure valid Java identifier
+    # If result is empty (e.g. all-Chinese filename), use hash
+    if not key:
+        key = 'song_' + hashlib.md5(filename.encode()).hexdigest()[:8]
     if key[0].isdigit():
         key = 's_' + key
     return key
