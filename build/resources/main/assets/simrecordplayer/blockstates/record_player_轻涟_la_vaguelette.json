@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "playing=false": {
+            "model": "simrecordplayer:block/record_player_轻涟_la_vaguelette"
+        },
+        "playing=true": {
+            "model": "simrecordplayer:block/record_player_轻涟_la_vaguelette"
+        }
+    }
+}

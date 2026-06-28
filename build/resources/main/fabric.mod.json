@@ -1,0 +1,28 @@
+{
+    "schemaVersion": 1,
+    "id": "simrecordplayer",
+    "version": "1.0.0",
+    "name": "S_I_M唱片机",
+    "description": "A record player mod that plays custom music",
+    "authors": [
+        "SIM"
+    ],
+    "contact": {},
+    "license": "MIT",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "com.sim.recordplayer.SIMRecordPlayer"
+        ],
+        "client": [
+            "com.sim.recordplayer.client.SIMRecordPlayerClient"
+        ]
+    },
+    "mixins": [],
+    "depends": {
+        "fabricloader": ">=0.16.0",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*"
+    }
+}

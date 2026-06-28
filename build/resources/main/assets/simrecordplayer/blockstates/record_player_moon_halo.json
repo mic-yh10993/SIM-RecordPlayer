@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "playing=false": {
+            "model": "simrecordplayer:block/record_player_moon_halo"
+        },
+        "playing=true": {
+            "model": "simrecordplayer:block/record_player_moon_halo"
+        }
+    }
+}

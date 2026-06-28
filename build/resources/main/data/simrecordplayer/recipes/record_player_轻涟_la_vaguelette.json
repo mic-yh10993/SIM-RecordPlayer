@@ -1,0 +1,26 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "ABA",
+        "ACA",
+        "DDD"
+    ],
+    "key": {
+        "A": {
+            "item": "minecraft:iron_ingot"
+        },
+        "B": {
+            "item": "minecraft:redstone"
+        },
+        "C": {
+            "item": "minecraft:note_block"
+        },
+        "D": {
+            "item": "minecraft:oak_planks"
+        }
+    },
+    "result": {
+        "id": "simrecordplayer:record_player_轻涟_la_vaguelette",
+        "count": 1
+    }
+}

@@ -1,6 +1,12 @@
 # Gradle
 .gradle/
-build/
+build/classes/
+build/tmp/
+build/intermediates/
+build/generated/
+build/lib/
+build/remapped/
+!build/output/
 !gradle/wrapper/gradle-wrapper.jar
 
 # IDE

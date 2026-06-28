@@ -10,9 +10,6 @@ on:
       - 'gradle.properties'
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,46 +38,15 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Get version
-        id: version
-        run: echo "version=$(grep 'mod_version' gradle.properties | cut -d'=' -f2 | tr -d ' ')" >> $GITHUB_OUTPUT
-
-      - name: List songs
-        id: songs
+      - name: Copy JAR to build folder
         run: |
-          SONGS=$(ls music/*.mp3 2>/dev/null | xargs -I {} basename {} .mp3 | tr '\n' ', ' | sed 's/,$//')
-          echo "songs=$SONGS" >> $GITHUB_OUTPUT
+          mkdir -p build/output
+          cp build/libs/*.jar build/output/
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: SIM-RecordPlayer-${{ steps.version.outputs.version }}
-          path: build/libs/*.jar
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/master')
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: "SIM-RecordPlayer v${{ steps.version.outputs.version }}"
-          body: |
-            ## SIM-RecordPlayer v${{ steps.version.outputs.version }}
-
-            ### included songs
-            ${{ steps.songs.outputs.songs }}
-
-            ### installation
-            1. Install Fabric Loader and Fabric API for Minecraft 1.21.1
-            2. Download the JAR file from this release
-            3. Place the JAR in your Minecraft `mods` folder
-            4. Place MP3 files in `~/Downloads/music/` (same filenames as in the `music/` folder)
-
-            ### how to add songs
-            1. Fork this repository
-            2. Add your MP3 files to the `music/` folder
-            3. Push to GitHub - the mod will be built automatically
-          files: build/libs/*.jar
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit and push build output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add build/output/
+          git diff --cached --quiet || git commit -m "Build: update JAR [skip ci]"
+          git push

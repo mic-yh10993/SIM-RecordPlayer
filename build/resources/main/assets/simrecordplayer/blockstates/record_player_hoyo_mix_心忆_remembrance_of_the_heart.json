@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "playing=false": {
+            "model": "simrecordplayer:block/record_player_hoyo_mix_心忆_remembrance_of_the_heart"
+        },
+        "playing=true": {
+            "model": "simrecordplayer:block/record_player_hoyo_mix_心忆_remembrance_of_the_heart"
+        }
+    }
+}

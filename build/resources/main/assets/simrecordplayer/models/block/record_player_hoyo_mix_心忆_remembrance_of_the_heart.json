@@ -1,0 +1,8 @@
+{
+    "parent": "minecraft:block/cube_bottom_top",
+    "textures": {
+        "top": "simrecordplayer:block/record_player_top",
+        "bottom": "simrecordplayer:block/record_player_bottom",
+        "side": "simrecordplayer:block/record_player_side"
+    }
+}
