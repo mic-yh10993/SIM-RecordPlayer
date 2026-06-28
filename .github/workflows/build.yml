@@ -42,14 +42,8 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Commit and push build output
-        run: |
-          mkdir -p build/output
-          rm -f build/output/*.jar
-          cp build/libs/*.jar build/output/
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add build/output/
-          git diff --cached --quiet || git commit -m "Build: update JAR [skip ci]"
-          git pull --rebase origin main
-          git push
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: SIM-RecordPlayer
+          path: build/libs/SIM-RecordPlayer-1.0.0.jar
