@@ -11,16 +11,16 @@ public class AudioPlayer {
     private Thread playThread;
     private volatile boolean playing = false;
     private volatile float volume = 1.0f;
-    private final String mp3Filename;
+    private final String resourcePath;
 
-    public AudioPlayer(String mp3Filename) {
-        this.mp3Filename = mp3Filename;
+    public AudioPlayer(String resourcePath) {
+        this.resourcePath = resourcePath;
     }
 
     public void play() {
         if (playing) return;
         playing = true;
-        SIMRecordPlayer.LOGGER.info("Starting audio playback: {}", mp3Filename);
+        SIMRecordPlayer.LOGGER.info("Starting audio playback: {}", resourcePath);
         playThread = new Thread(this::playLoop, "SIM-RecordPlayer-Audio");
         playThread.setDaemon(true);
         playThread.start();
@@ -28,24 +28,23 @@ public class AudioPlayer {
 
     private void playLoop() {
         while (playing) {
-            File mp3File = new File(System.getProperty("user.home"),
-                    "Downloads" + File.separator + "music" + File.separator + mp3Filename);
-            if (!mp3File.exists()) {
-                SIMRecordPlayer.LOGGER.warn("MP3 not found: {}", mp3File.getAbsolutePath());
+            InputStream is = getClass().getResourceAsStream("/assets/simrecordplayer/music/" + resourcePath);
+            if (is == null) {
+                SIMRecordPlayer.LOGGER.warn("MP3 resource not found: {}", resourcePath);
                 sleep(2000);
                 continue;
             }
-            SIMRecordPlayer.LOGGER.info("Playing MP3: {}", mp3File.getAbsolutePath());
-            try (InputStream is = new BufferedInputStream(new FileInputStream(mp3File))) {
+            SIMRecordPlayer.LOGGER.info("Playing MP3: {}", resourcePath);
+            try (InputStream bis = new BufferedInputStream(is)) {
                 audioDevice = new VolumeAudioDevice();
                 audioDevice.setVolume(volume);
-                Player p = new Player(is, audioDevice);
+                Player p = new Player(bis, audioDevice);
                 player = p;
                 p.play();
-                SIMRecordPlayer.LOGGER.info("Playback finished: {}", mp3Filename);
+                SIMRecordPlayer.LOGGER.info("Playback finished: {}", resourcePath);
             } catch (Exception e) {
                 if (playing) {
-                    SIMRecordPlayer.LOGGER.error("Playback error for {}: {}", mp3Filename, e.getMessage());
+                    SIMRecordPlayer.LOGGER.error("Playback error for {}: {}", resourcePath, e.getMessage());
                 }
             } finally {
                 player = null;
