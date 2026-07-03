@@ -28,7 +28,14 @@ dependencies {
     implementation files('libs/jlayer-1.0.1.jar')
 }
 
+task copyMusic(type: Copy) {
+    from 'music'
+    into 'src/main/resources/assets/simrecordplayer/music'
+    include '**/*.mp3'
+}
+
 processResources {
+    dependsOn copyMusic
     inputs.property "version", project.version
 
     filesMatching("fabric.mod.json") {
@@ -45,6 +52,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 
     withSourcesJar()
+}
+
+tasks.named('sourcesJar') {
+    dependsOn copyMusic
 }
 
 jar {

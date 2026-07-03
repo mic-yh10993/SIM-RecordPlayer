@@ -28,3 +28,6 @@ src/main/resources/assets/simrecordplayer/models/
 src/main/resources/assets/simrecordplayer/lang/
 src/main/resources/data/simrecordplayer/loot_tables/
 src/main/resources/data/simrecordplayer/recipes/
+
+# Music files (copied from music/ during build)
+src/main/resources/assets/simrecordplayer/music/
