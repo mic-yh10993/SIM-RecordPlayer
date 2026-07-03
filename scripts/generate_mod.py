@@ -432,6 +432,17 @@ def gen_loot_tables(songs):
     print(f"  Generated: {len(songs)} loot table files")
 
 
+def copy_music_files(songs):
+    """Copy MP3 files from music/ to resources/ for runtime loading"""
+    dest_dir = RES_DIR / "assets" / "simrecordplayer" / "music"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    for _, _, filename in songs:
+        src = MUSIC_DIR / filename
+        dst = dest_dir / filename
+        shutil.copy2(src, dst)
+        print(f"  Copied: {filename} -> {dst}")
+
+
 def gen_recipes(songs):
     """Generate recipe JSON files"""
     for song_key, _, _ in songs:
@@ -496,6 +507,10 @@ def main():
     gen_lang(songs)
     gen_loot_tables(songs)
     gen_recipes(songs)
+    print()
+
+    print("Copying music files...")
+    copy_music_files(songs)
     print()
 
     print("=== Done! ===")
