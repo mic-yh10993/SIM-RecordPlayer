@@ -11,7 +11,8 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 public class RecordPlayerBlockEntity extends BlockEntity {
-    private final String songName;
+    private String songName;
+    private long startTick = 0;
 
     public RecordPlayerBlockEntity(String songName, BlockPos pos, BlockState state) {
         super(ModBlocks.RECORD_PLAYER_BLOCK_ENTITY, pos, state);
@@ -20,6 +21,15 @@ public class RecordPlayerBlockEntity extends BlockEntity {
 
     public String getSongName() {
         return songName;
+    }
+
+    public long getStartTick() {
+        return startTick;
+    }
+
+    public void setStartTick(long tick) {
+        this.startTick = tick;
+        markDirty();
     }
 
     public boolean isPlaying() {
@@ -41,11 +51,14 @@ public class RecordPlayerBlockEntity extends BlockEntity {
     protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         super.writeNbt(nbt, registries);
         nbt.putString("SongName", songName);
+        nbt.putLong("StartTick", startTick);
     }
 
     @Override
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         super.readNbt(nbt, registries);
+        this.songName = nbt.getString("SongName");
+        this.startTick = nbt.getLong("StartTick");
     }
 
     @Nullable

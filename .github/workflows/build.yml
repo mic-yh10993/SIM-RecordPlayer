@@ -42,16 +42,20 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Build client JAR (with music)
+        run: ./gradlew jar
+
+      - name: Build server JAR (without music)
+        run: ./gradlew serverJar
 
       - name: Commit and push build output
         run: |
           mkdir -p build/output
           rm -f build/output/*.jar
           cp build/libs/SIM-RecordPlayer-1.0.0.jar build/output/
+          cp build/libs/SIM-RecordPlayer-1.0.0-server.jar build/output/
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f build/output/
-          git commit -m "Build: update JAR [skip ci]" || true
+          git commit -m "Build: update JARs (client + server) [skip ci]" || true
           git push origin main

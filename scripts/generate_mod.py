@@ -221,10 +221,13 @@ def gen_client_manager(songs):
 import com.sim.recordplayer.SIMRecordPlayer;
 import com.sim.recordplayer.audio.AudioPlayer;
 import com.sim.recordplayer.block.RecordPlayerBlock;
+import com.sim.recordplayer.block.RecordPlayerBlockEntity;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
@@ -294,14 +297,34 @@ public class RecordPlayerClientManager {{
             return;
         }}
 
+        boolean blocked = isSoundBlocked(client.world, foundPos, client.player.getBlockPos());
+        if (blocked) {{
+            stopAll();
+            return;
+        }}
+
         if (currentAudio == null || !currentAudio.isPlaying()) {{
             String mp3File = getMp3ForSong(foundSong);
             if (mp3File == null) {{
                 SIMRecordPlayer.LOGGER.warn("Unknown song: {{}}", foundSong);
                 return;
             }}
-            SIMRecordPlayer.LOGGER.info("Starting audio for song: {{}} at distance: {{}}", foundSong, distance);
+
+            int seekMs = 0;
+            BlockEntity be = client.world.getBlockEntity(foundPos);
+            if (be instanceof RecordPlayerBlockEntity rpe) {{
+                long startTick = rpe.getStartTick();
+                long currentTick = client.world.getTime();
+                if (startTick > 0 && currentTick >= startTick) {{
+                    seekMs = (int) ((currentTick - startTick) * 50L);
+                }}
+            }}
+
+            SIMRecordPlayer.LOGGER.info("Starting audio for song: {{}} at distance: {{}}ms seek: {{}}", foundSong, distance, seekMs);
             currentAudio = new AudioPlayer(mp3File);
+            if (seekMs > 0) {{
+                currentAudio.setSeekMs(seekMs);
+            }}
             currentAudio.play();
             currentPos = foundPos;
         }}
@@ -314,6 +337,30 @@ public class RecordPlayerClientManager {{
             volume = Math.max(0f, Math.min(1f, volume));
         }}
         currentAudio.setVolume(volume);
+    }}
+
+    private static boolean isSoundBlocked(World world, BlockPos source, BlockPos target) {{
+        Vec3d start = Vec3d.ofCenter(source);
+        Vec3d end = Vec3d.ofCenter(target);
+        Vec3d diff = end.subtract(start);
+        double distance = diff.length();
+        Vec3d dir = diff.normalize();
+
+        int steps = (int) (distance * 2);
+        for (int i = 1; i < steps; i++) {{
+            Vec3d point = start.add(dir.multiply(i * 0.5));
+            BlockPos check = new BlockPos(
+                    (int) Math.floor(point.x),
+                    (int) Math.floor(point.y),
+                    (int) Math.floor(point.z)
+            );
+            if (check.equals(source) || check.equals(target)) continue;
+            BlockState state = world.getBlockState(check);
+            if (state.isOpaqueFullCube(world, check)) {{
+                return true;
+            }}
+        }}
+        return false;
     }}
 
     private static String getMp3ForSong(String songName) {{

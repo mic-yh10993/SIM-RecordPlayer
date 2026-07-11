@@ -43,6 +43,12 @@ public class RecordPlayerBlock extends Block implements BlockEntityProvider {
         if (!world.isClient) {
             boolean playing = !state.get(PLAYING);
             world.setBlockState(pos, state.with(PLAYING, playing), 3);
+            if (playing) {
+                BlockEntity be = world.getBlockEntity(pos);
+                if (be instanceof RecordPlayerBlockEntity rpe) {
+                    rpe.setStartTick(world.getTime());
+                }
+            }
         }
         return ActionResult.success(world.isClient);
     }
