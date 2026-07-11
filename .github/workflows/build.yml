@@ -43,7 +43,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build client JAR (with music)
-        run: ./gradlew jar
+        run: ./gradlew build
 
       - name: Build server JAR (without music)
         run: ./gradlew serverJar

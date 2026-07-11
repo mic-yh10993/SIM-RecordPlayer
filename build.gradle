@@ -59,21 +59,15 @@ tasks.named('sourcesJar') {
 }
 
 task serverJar(type: Jar) {
-    dependsOn classes
-    dependsOn processResources
+    dependsOn remapJar
     archiveClassifier = 'server'
-    from sourceSets.main.output
-    from sourceSets.main.resources
-    from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}" }
+    from(zipTree(project.tasks.remapJar.archiveFile)) {
+        exclude 'assets/simrecordplayer/music/**'
     }
-    from zipTree('libs/jlayer-1.0.1.jar')
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude 'META-INF/*.SF'
     exclude 'META-INF/*.DSA'
     exclude 'META-INF/*.RSA'
-    exclude 'META-INF/MANIFEST.MF'
-    exclude 'assets/simrecordplayer/music/**'
 }
 
 jar {
