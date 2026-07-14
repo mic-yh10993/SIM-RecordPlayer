@@ -30,6 +30,7 @@ public class RecordPlayerBlockEntity extends BlockEntity {
     public void setStartTick(long tick) {
         this.startTick = tick;
         markDirty();
+        sync();
     }
 
     public boolean isPlaying() {
@@ -43,6 +44,8 @@ public class RecordPlayerBlockEntity extends BlockEntity {
             BlockState state = getWorld().getBlockState(pos);
             if (state.getBlock() instanceof RecordPlayerBlock) {
                 getWorld().setBlockState(pos, state.with(RecordPlayerBlock.PLAYING, playing), 3);
+                markDirty();
+                sync();
             }
         }
     }

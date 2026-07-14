@@ -15,7 +15,7 @@ public class RecordPlayerBlockItem extends BlockItem {
     public BlockState getPlacementState(ItemPlacementContext context) {
         BlockState state = super.getPlacementState(context);
         if (state != null) {
-            return state.with(RecordPlayerBlock.PLAYING, true);
+            return state.with(RecordPlayerBlock.PLAYING, false);
         }
         return null;
     }

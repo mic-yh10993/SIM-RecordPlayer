@@ -297,8 +297,8 @@ public class RecordPlayerClientManager {{
             return;
         }}
 
-        boolean blocked = isSoundBlocked(client.world, foundPos, client.player.getBlockPos());
-        if (blocked) {{
+        float occlusion = getOcclusionFactor(client.world, foundPos, client.player.getBlockPos());
+        if (occlusion <= 0.01f) {{
             stopAll();
             return;
         }}
@@ -336,19 +336,21 @@ public class RecordPlayerClientManager {{
             volume = (float) (1.0 - (distance - FADE_START) / (MAX_DISTANCE - FADE_START));
             volume = Math.max(0f, Math.min(1f, volume));
         }}
+        volume *= occlusion;
         currentAudio.setVolume(volume);
     }}
 
-    private static boolean isSoundBlocked(World world, BlockPos source, BlockPos target) {{
+    private static float getOcclusionFactor(World world, BlockPos source, BlockPos target) {{
         Vec3d start = Vec3d.ofCenter(source);
         Vec3d end = Vec3d.ofCenter(target);
         Vec3d diff = end.subtract(start);
         double distance = diff.length();
         Vec3d dir = diff.normalize();
 
-        int steps = (int) (distance * 2);
+        int wallCount = 0;
+        int steps = (int) (distance * 4);
         for (int i = 1; i < steps; i++) {{
-            Vec3d point = start.add(dir.multiply(i * 0.5));
+            Vec3d point = start.add(dir.multiply(i / 4.0));
             BlockPos check = new BlockPos(
                     (int) Math.floor(point.x),
                     (int) Math.floor(point.y),
@@ -357,10 +359,13 @@ public class RecordPlayerClientManager {{
             if (check.equals(source) || check.equals(target)) continue;
             BlockState state = world.getBlockState(check);
             if (state.isOpaqueFullCube(world, check)) {{
-                return true;
+                wallCount++;
             }}
         }}
-        return false;
+
+        if (wallCount == 0) return 1.0f;
+        if (wallCount >= 2) return 0.05f;
+        return 0.2f;
     }}
 
     private static String getMp3ForSong(String songName) {{
