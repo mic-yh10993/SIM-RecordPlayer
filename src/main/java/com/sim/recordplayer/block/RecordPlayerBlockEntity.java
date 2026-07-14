@@ -1,5 +1,6 @@
 package com.sim.recordplayer.block;
 
+import com.sim.recordplayer.SIMRecordPlayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -12,7 +13,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class RecordPlayerBlockEntity extends BlockEntity {
     private String songName;
-    private long startTick = 0;
+    private int elapsedMs = 0;
+    private long lastTick = 0;
 
     public RecordPlayerBlockEntity(String songName, BlockPos pos, BlockState state) {
         super(ModBlocks.RECORD_PLAYER_BLOCK_ENTITY, pos, state);
@@ -23,13 +25,30 @@ public class RecordPlayerBlockEntity extends BlockEntity {
         return songName;
     }
 
-    public long getStartTick() {
-        return startTick;
+    public int getElapsedMs() {
+        return elapsedMs;
     }
 
-    public void setStartTick(long tick) {
-        this.startTick = tick;
+    public void setElapsedMs(int ms) {
+        this.elapsedMs = ms;
         markDirty();
+    }
+
+    public void startPlaying() {
+        if (getWorld() != null && !getWorld().isClient) {
+            lastTick = getWorld().getTime();
+            SIMRecordPlayer.registerPlaying(this);
+            markDirty();
+        }
+    }
+
+    public void updateElapsed() {
+        if (getWorld() != null && !getWorld().isClient && isPlaying()) {
+            long currentTick = getWorld().getTime();
+            elapsedMs += (int) ((currentTick - lastTick) * 50L);
+            lastTick = currentTick;
+            markDirty();
+        }
     }
 
     public boolean isPlaying() {
@@ -42,6 +61,13 @@ public class RecordPlayerBlockEntity extends BlockEntity {
             BlockPos pos = getPos();
             BlockState state = getWorld().getBlockState(pos);
             if (state.getBlock() instanceof RecordPlayerBlock) {
+                if (playing) {
+                    lastTick = getWorld().getTime();
+                    SIMRecordPlayer.registerPlaying(this);
+                } else {
+                    updateElapsed();
+                    SIMRecordPlayer.unregisterPlaying(this);
+                }
                 getWorld().setBlockState(pos, state.with(RecordPlayerBlock.PLAYING, playing), 3);
                 markDirty();
             }
@@ -52,14 +78,14 @@ public class RecordPlayerBlockEntity extends BlockEntity {
     protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         super.writeNbt(nbt, registries);
         nbt.putString("SongName", songName);
-        nbt.putLong("StartTick", startTick);
+        nbt.putInt("ElapsedMs", elapsedMs);
     }
 
     @Override
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         super.readNbt(nbt, registries);
         this.songName = nbt.getString("SongName");
-        this.startTick = nbt.getLong("StartTick");
+        this.elapsedMs = nbt.getInt("ElapsedMs");
     }
 
     @Nullable

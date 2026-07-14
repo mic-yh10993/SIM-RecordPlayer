@@ -297,8 +297,8 @@ public class RecordPlayerClientManager {{
             return;
         }}
 
-        float occlusion = getOcclusionFactor(client.world, foundPos, client.player.getBlockPos());
-        if (occlusion <= 0.01f) {{
+        boolean blocked = isSoundBlocked(client.world, foundPos, client.player.getBlockPos());
+        if (blocked) {{
             stopAll();
             return;
         }}
@@ -313,11 +313,7 @@ public class RecordPlayerClientManager {{
             int seekMs = 0;
             BlockEntity be = client.world.getBlockEntity(foundPos);
             if (be instanceof RecordPlayerBlockEntity rpe) {{
-                long startTick = rpe.getStartTick();
-                long currentTick = client.world.getTime();
-                if (startTick > 0 && currentTick >= startTick) {{
-                    seekMs = (int) ((currentTick - startTick) * 50L);
-                }}
+                seekMs = rpe.getElapsedMs();
             }}
 
             SIMRecordPlayer.LOGGER.info("Starting audio for song: {{}} at distance: {{}}ms seek: {{}}", foundSong, distance, seekMs);
@@ -336,18 +332,16 @@ public class RecordPlayerClientManager {{
             volume = (float) (1.0 - (distance - FADE_START) / (MAX_DISTANCE - FADE_START));
             volume = Math.max(0f, Math.min(1f, volume));
         }}
-        volume *= occlusion;
         currentAudio.setVolume(volume);
     }}
 
-    private static float getOcclusionFactor(World world, BlockPos source, BlockPos target) {{
+    private static boolean isSoundBlocked(World world, BlockPos source, BlockPos target) {{
         Vec3d start = Vec3d.ofCenter(source);
         Vec3d end = Vec3d.ofCenter(target);
         Vec3d diff = end.subtract(start);
         double distance = diff.length();
         Vec3d dir = diff.normalize();
 
-        int wallCount = 0;
         int steps = (int) (distance * 4);
         for (int i = 1; i < steps; i++) {{
             Vec3d point = start.add(dir.multiply(i / 4.0));
@@ -359,13 +353,10 @@ public class RecordPlayerClientManager {{
             if (check.equals(source) || check.equals(target)) continue;
             BlockState state = world.getBlockState(check);
             if (state.isOpaqueFullCube(world, check)) {{
-                wallCount++;
+                return true;
             }}
         }}
-
-        if (wallCount == 0) return 1.0f;
-        if (wallCount >= 2) return 0.05f;
-        return 0.2f;
+        return false;
     }}
 
     private static String getMp3ForSong(String songName) {{

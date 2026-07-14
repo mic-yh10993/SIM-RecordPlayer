@@ -41,13 +41,10 @@ public class RecordPlayerBlock extends Block implements BlockEntityProvider {
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (!world.isClient) {
-            boolean playing = !state.get(PLAYING);
-            world.setBlockState(pos, state.with(PLAYING, playing), 3);
-            if (playing) {
-                BlockEntity be = world.getBlockEntity(pos);
-                if (be instanceof RecordPlayerBlockEntity rpe) {
-                    rpe.setStartTick(world.getTime());
-                }
+            BlockEntity be = world.getBlockEntity(pos);
+            if (be instanceof RecordPlayerBlockEntity rpe) {
+                boolean playing = !state.get(PLAYING);
+                rpe.setPlaying(playing);
             }
         }
         return ActionResult.success(world.isClient);
